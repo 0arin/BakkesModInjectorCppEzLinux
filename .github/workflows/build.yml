@@ -23,16 +23,20 @@ jobs:
         version: '5.15.2'
         arch: 'win64_msvc2019_64'
 
-    - name: Install vcpkg dependencies
+    - name: Download miniz
       run: |
-        vcpkg install miniz:x64-windows
-        vcpkg integrate install
+        curl -L https://github.com/richgel999/miniz/archive/refs/heads/master.zip -o miniz.zip
+        Expand-Archive miniz.zip -DestinationPath C:\Users\runneradmin\Downloads\
+        Rename-Item C:\Users\runneradmin\Downloads\miniz-master C:\Users\runneradmin\Downloads\miniz-master
 
     - name: Find and build solution
+      env:
+        QTDIR: ${{ env.Qt5_DIR }}
       run: |
         $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
         Write-Host "Found solution: $($sln.FullName)"
-        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:VcpkgEnabled=true
+        Write-Host "QTDIR: $env:QTDIR"
+        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$env:QTDIR"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
