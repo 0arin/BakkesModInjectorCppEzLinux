@@ -23,16 +23,39 @@ jobs:
         version: '5.15.2'
         arch: 'win64_msvc2019_64'
 
+    - name: Install Qt MSBuild tools
+      run: |
+        pip install aqtinstall
+        python -m aqt install-tool windows desktop tools_qtcreator
+
     - name: Download miniz
       run: |
         curl -L https://github.com/richgel999/miniz/archive/refs/heads/master.zip -o miniz.zip
         Expand-Archive miniz.zip -DestinationPath C:\Users\runneradmin\Downloads\
 
+    - name: Setup QtMsBuild
+      run: |
+        $qtMsBuildPath = "$env:QT_ROOT_DIR\bin\qtenv2.bat"
+        $qtMsBuild = Get-ChildItem -Path "$env:QT_ROOT_DIR" -Recurse -Filter "qt.targets" | Select-Object -First 1
+        if ($qtMsBuild) {
+          Write-Host "Found QtMsBuild at: $($qtMsBuild.DirectoryName)"
+          echo "QTMSBUILD=$($qtMsBuild.DirectoryName)" >> $env:GITHUB_ENV
+        } else {
+          # Download Qt MSBuild tools directly
+          curl -L "https://download.qt.io/official_releases/vsaddin/2.9.1/qt-vsaddin-msvc2019-2.9.1.vsix" -o qtvsaddin.vsix
+          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64
+        }
+
     - name: Find and build solution
       run: |
         $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
         Write-Host "Found solution: $($sln.FullName)"
-        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="D:\a\BakkesModInjectorCppEzLinux\Qt\5.15.2\msvc2019_64"
+        $qtDir = "$env:QT_ROOT_DIR"
+        $qtMsBuild = Get-ChildItem -Path $qtDir -Recurse -Filter "qt.targets" -ErrorAction SilentlyContinue | Select-Object -First 1
+        $qtMsBuildDir = if ($qtMsBuild) { $qtMsBuild.DirectoryName } else { "$qtDir\bin" }
+        Write-Host "QTDIR: $qtDir"
+        Write-Host "QtMsBuild: $qtMsBuildDir"
+        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$qtDir" /p:QtMsBuild="$qtMsBuildDir"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
