@@ -27,16 +27,12 @@ jobs:
       run: |
         curl -L https://github.com/richgel999/miniz/archive/refs/heads/master.zip -o miniz.zip
         Expand-Archive miniz.zip -DestinationPath C:\Users\runneradmin\Downloads\
-        Rename-Item C:\Users\runneradmin\Downloads\miniz-master C:\Users\runneradmin\Downloads\miniz-master
 
     - name: Find and build solution
-      env:
-        QTDIR: ${{ env.Qt5_DIR }}
       run: |
         $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
         Write-Host "Found solution: $($sln.FullName)"
-        Write-Host "QTDIR: $env:QTDIR"
-        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$env:QTDIR"
+        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="D:\a\BakkesModInjectorCppEzLinux\Qt\5.15.2\msvc2019_64"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
