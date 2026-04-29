@@ -17,11 +17,16 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
-    - name: Build
-      run: msbuild BakkesModInjector.sln /p:Configuration=Release /p:Platform=x64
+    - name: Find and build solution
+      run: |
+        $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
+        Write-Host "Found solution: $($sln.FullName)"
+        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: BakkesMod
-        path: x64/Release/BakkesMod.exe
+        path: |
+          x64/Release/BakkesMod.exe
+          **/Release/BakkesMod.exe
