@@ -23,8 +23,10 @@ jobs:
         version: '5.15.2'
         arch: 'win64_msvc2019_64'
 
-    - name: Install QtMsBuild via NuGet
-      run: nuget install QtMsBuild -OutputDirectory QtMsBuild_pkg
+    - name: Download QtMsBuild
+      run: |
+        curl -L "https://github.com/qt-labs/vstools/releases/download/v2.9.1/QtMsBuild.zip" -o QtMsBuild.zip
+        Expand-Archive QtMsBuild.zip -DestinationPath .\BakkesModInjectorC++\QtMsBuild
 
     - name: Download miniz
       run: |
@@ -35,12 +37,9 @@ jobs:
       run: |
         $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
         $qtDir = "$env:QT_ROOT_DIR"
-        $qtMsBuild = Get-ChildItem -Path "QtMsBuild_pkg" -Recurse -Filter "qt.targets" | Select-Object -First 1
-        $qtMsBuildDir = $qtMsBuild.DirectoryName
         Write-Host "Solution: $($sln.FullName)"
         Write-Host "QTDIR: $qtDir"
-        Write-Host "QtMsBuild: $qtMsBuildDir"
-        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$qtDir" /p:QtMsBuild="$qtMsBuildDir"
+        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$qtDir"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
