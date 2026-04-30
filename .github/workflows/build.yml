@@ -30,7 +30,7 @@ jobs:
 
     - name: Download zip_file.hpp
       run: |
-        curl -L "https://raw.githubusercontent.com/sebastiandev/zipper/master/zipper/zip_file.hpp" -o "BakkesModInjectorC++\zip_file.hpp"
+        curl -L "https://raw.githubusercontent.com/tfussell/miniz-cpp/master/zip_file.hpp" -o "BakkesModInjectorC++\zip_file.hpp"
 
     - name: Download QtMsBuild
       run: |
