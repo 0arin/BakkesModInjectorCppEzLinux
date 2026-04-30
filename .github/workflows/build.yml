@@ -23,7 +23,7 @@ jobs:
         version: '5.15.2'
         arch: 'win64_msvc2019_64'
 
-   - name: Install dependencies via vcpkg
+    - name: Install dependencies via vcpkg
       run: |
         vcpkg install curl[openssl]:x64-windows curlpp:x64-windows openssl:x64-windows --triplet x64-windows
         vcpkg integrate install
@@ -46,10 +46,9 @@ jobs:
       run: |
         $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
         $qtDir = "$env:QT_ROOT_DIR"
-        $vcpkgIncludes = "C:\vcpkg\installed\x64-windows\include"
-        $vcpkgLibs = "C:\vcpkg\installed\x64-windows\lib"
         Write-Host "Solution: $($sln.FullName)"
-        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$qtDir" /p:AdditionalIncludeDirectories="$vcpkgIncludes"
+        Write-Host "QTDIR: $qtDir"
+        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$qtDir"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
