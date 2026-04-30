@@ -25,8 +25,18 @@ jobs:
 
     - name: Download QtMsBuild
       run: |
-        curl -L "https://github.com/qt-labs/vstools/releases/download/v2.9.1/QtMsBuild.zip" -o QtMsBuild.zip
-        Expand-Archive QtMsBuild.zip -DestinationPath .\BakkesModInjectorC++\QtMsBuild
+        $releases = Invoke-RestMethod "https://api.github.com/repos/qt-labs/vstools/releases/latest"
+        $asset = $releases.assets | Where-Object { $_.name -like "*QtMsBuild*" }
+        if ($asset) {
+          Invoke-WebRequest $asset.browser_download_url -OutFile QtMsBuild.zip
+          Expand-Archive QtMsBuild.zip -DestinationPath "BakkesModInjectorC++\QtMsBuild"
+        } else {
+          Write-Host "Assets found:"
+          $releases.assets | ForEach-Object { Write-Host $_.name }
+          # Fallback: clone and copy
+          git clone --depth 1 https://github.com/qt-labs/vstools.git vstools_tmp
+          Copy-Item -Recurse vstools_tmp\QtMsBuild "BakkesModInjectorC++\QtMsBuild"
+        }
 
     - name: Download miniz
       run: |
@@ -39,6 +49,8 @@ jobs:
         $qtDir = "$env:QT_ROOT_DIR"
         Write-Host "Solution: $($sln.FullName)"
         Write-Host "QTDIR: $qtDir"
+        Write-Host "QtMsBuild contents:"
+        Get-ChildItem "BakkesModInjectorC++\QtMsBuild" -ErrorAction SilentlyContinue
         msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$qtDir"
 
     - name: Upload artifact
