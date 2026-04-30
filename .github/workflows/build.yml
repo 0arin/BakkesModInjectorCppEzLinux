@@ -23,9 +23,9 @@ jobs:
         version: '5.15.2'
         arch: 'win64_msvc2019_64'
 
-    - name: Install dependencies via vcpkg
+   - name: Install dependencies via vcpkg
       run: |
-        vcpkg install curl:x64-windows curlpp:x64-windows --triplet x64-windows
+        vcpkg install curl[openssl]:x64-windows curlpp:x64-windows openssl:x64-windows --triplet x64-windows
         vcpkg integrate install
 
     - name: Download zip_file.hpp
