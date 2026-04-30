@@ -22,36 +22,25 @@ jobs:
       with:
         version: '5.15.2'
         arch: 'win64_msvc2019_64'
-        tools: 'tools_qtcreator'
+
+    - name: Install QtMsBuild via NuGet
+      run: nuget install QtMsBuild -OutputDirectory QtMsBuild_pkg
 
     - name: Download miniz
       run: |
         curl -L https://github.com/richgel999/miniz/archive/refs/heads/master.zip -o miniz.zip
         Expand-Archive miniz.zip -DestinationPath C:\Users\runneradmin\Downloads\
 
-    - name: Install Qt MSBuild
-      run: |
-        pip install aqtinstall
-        python -m aqt install-tool windows desktop tools_vcredist
-        curl -L "https://github.com/qt-labs/vstools/releases/download/v2.9.1/qt-vsaddin-msvc2019-2.9.1-online.vsix" -o qtvsaddin.vsix 2>$null
-        # Use QtMsBuild from Qt installation directly
-        $qtMsBuildSrc = "$env:QT_ROOT_DIR\..\Tools\QtCreator\bin\jom"
-        $qtDir = "$env:QT_ROOT_DIR"
-        # Generate MOC files manually
-        Get-ChildItem -Path "BakkesModInjectorC++" -Filter "*.h" | ForEach-Object {
-          & "$qtDir\bin\moc.exe" $_.FullName -o "BakkesModInjectorC++\GeneratedFiles\moc_$($_.BaseName).cpp" 2>$null
-        }
-        echo "Qt MOC complete"
-
     - name: Find and build solution
       run: |
         $sln = Get-ChildItem -Recurse -Filter *.sln | Select-Object -First 1
         $qtDir = "$env:QT_ROOT_DIR"
-        Write-Host "Found solution: $($sln.FullName)"
+        $qtMsBuild = Get-ChildItem -Path "QtMsBuild_pkg" -Recurse -Filter "qt.targets" | Select-Object -First 1
+        $qtMsBuildDir = $qtMsBuild.DirectoryName
+        Write-Host "Solution: $($sln.FullName)"
         Write-Host "QTDIR: $qtDir"
-        # Point QtMsBuild to a dummy path to skip the Qt VS tools requirement
-        $qtMsBuild = "$qtDir\bin"
-        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$qtDir" /p:QtMsBuild="$qtMsBuild" /p:VcpkgEnabled=false
+        Write-Host "QtMsBuild: $qtMsBuildDir"
+        msbuild $sln.FullName /p:Configuration=Release /p:Platform=x64 /p:QTDIR="$qtDir" /p:QtMsBuild="$qtMsBuildDir"
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
