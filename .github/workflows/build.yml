@@ -25,7 +25,7 @@ jobs:
 
     - name: Install dependencies via vcpkg
       run: |
-        vcpkg install curl[openssl]:x64-windows curlpp:x64-windows openssl:x64-windows --triplet x64-windows
+        vcpkg install curl[openssl]:x64-windows-static curlpp:x64-windows-static openssl:x64-windows-static --triplet x64-windows-static
         vcpkg integrate install
 
     - name: Download zip_file.hpp
