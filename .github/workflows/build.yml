@@ -25,8 +25,15 @@ jobs:
 
     - name: Install dependencies via vcpkg
       run: |
-        vcpkg install curl[openssl]:x64-windows-static curlpp:x64-windows-static openssl:x64-windows-static --triplet x64-windows-static
+        vcpkg install curl[openssl]:x64-windows curlpp:x64-windows openssl:x64-windows --triplet x64-windows
         vcpkg integrate install
+
+    - name: Create dummy static SSL libs
+      run: |
+        $ssl = "C:\vcpkg\installed\x64-windows\lib\libssl_static.lib"
+        $crypto = "C:\vcpkg\installed\x64-windows\lib\libcrypto_static.lib"
+        if (!(Test-Path $ssl)) { Copy-Item "C:\vcpkg\installed\x64-windows\lib\libssl.lib" $ssl }
+        if (!(Test-Path $crypto)) { Copy-Item "C:\vcpkg\installed\x64-windows\lib\libcrypto.lib" $crypto }
 
     - name: Download zip_file.hpp
       run: |
